@@ -18,4 +18,4 @@ async def main():
 
 
 asyncio.run(main())
-bot.run("MTA0MTcyNTAxMDgwMjM4NDk3OA.GjKmZk.lAg2uOJMYyIRZHbVl_toocuRPkh3AAA-puYyq0")
+bot.run("TOKEN")
