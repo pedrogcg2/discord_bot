@@ -1,4 +1,3 @@
-#testando aq o git commit
 
 import discord
 import pafy
@@ -13,13 +12,12 @@ class MusicCog(commands.Cog):
 
         self.is_playing = False
         self.is_paused = False
-
+        self.channel_connected = None
         self.music_queue = []
-        self.youtubedl_options = {'format': 'bestaudio', 'noplaylist': 'True'}
+        
         self.ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                                'options': '-vn'}
-
-        self.channel_connected = None
+     
 
     def search(self, music):
         response = VideosSearch(music, limit=1)
@@ -35,15 +33,12 @@ class MusicCog(commands.Cog):
             url = self.music_queue[0][0]
 
             if self.channel_connected == None:
-                self.channel_connected = await self.music_queue[0][1].connect()
-
-                if self.channel_connected is None:
-                    await ctx.send("to fraquinho nao consegui entrar")
-                    return
+                self.channel_connected = await self.music_queue[0][1].connect()     
             else:
                 await self.channel_connected.move_to(self.music_queue[0][1])
 
             self.music_queue.pop(0)
+           
             video = pafy.new(url)
             song = video.getbestaudio()
             source = discord.FFmpegPCMAudio(song.url, **self.ffmpeg_options)
@@ -54,14 +49,15 @@ class MusicCog(commands.Cog):
     
         else:
             self.is_playing = False
-            if self.channel_connected != None:
-                await self.channel_connected.disconnect()   
-                self.channel_connected = None
-            return
+            await asyncio.sleep(300)
+            if self.is_playing == False:
+                await ctx.send("Bot desconectado devido a inatividade")
+                await self.quit(ctx)
+                return
     
 
     def play_next(self, ctx, loop):
-        asyncio.run_coroutine_threadsafe(self.play_music(ctx), loop)
+        asyncio.run_coroutine_threadsafe(self.play_music(ctx), loop) 
 
 
     @commands.command(name="play", aliases=['p'], help="toca umas musiquinha")
@@ -71,11 +67,12 @@ class MusicCog(commands.Cog):
         channel = ctx.author.voice.channel
 
         if channel is None:
+            await ctx.send("Você tem que estar conectado em um canal")
             return
         
         song = self.search(song_name)
         if type(song) != str:
-            await ctx.send("Sou burro e nao achei :/")
+            await ctx.send("Não encontrei")
         else:
             self.music_queue.append([song, channel])
             await ctx.send("Entrou na fila :D")
@@ -108,7 +105,7 @@ class MusicCog(commands.Cog):
         self.is_playing = False
         self.is_paused = False
         await self.channel_connected.disconnect()
-
+        self.channel_connected = None
 
     @commands.command(name="playlist", aliases=["pl"],help="Diz as musicas na playlist")
     async def playlist(self, ctx, *args):
