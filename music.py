@@ -37,21 +37,21 @@ class MusicCog(commands.Cog):
             else:
                 await self.channel_connected.move_to(self.music_queue[0][1])
 
-            self.music_queue.pop(0)
-           
             video = pafy.new(url)
             song = video.getbestaudio()
             source = discord.FFmpegPCMAudio(song.url, **self.ffmpeg_options)
             
-            await ctx.send(f"Tocando: {video.title}")
+            await ctx.send(f">>> Tocando: {video.title}")
             self.channel_connected.play(source, after= lambda e: self.play_next(ctx, loop))
+
+            self.music_queue.pop(0)
             
     
         else: 
             self.is_playing = False
             await asyncio.sleep(300)
             if not self.channel_connected.is_playing():
-                await ctx.send("Bot desconectado devido a inatividade")
+                await ctx.send(">>> Bot desconectado devido a inatividade")
                 await self.quit(ctx)
                 return 0
         return -1
@@ -68,15 +68,15 @@ class MusicCog(commands.Cog):
         channel = ctx.author.voice.channel
 
         if channel is None:
-            await ctx.send("Você tem que estar conectado em um canal")
+            await ctx.send(">>> Você tem que estar conectado em um canal")
             return
         
         song = self.search(song_name)
         if type(song) != str:
-            await ctx.send("Não encontrei")
+            await ctx.send(">>> Não encontrei")
         else:
             self.music_queue.append([song, channel])
-            await ctx.send("Entrou na fila :D")
+            await ctx.send(f">>> Entrou na fila :D")
             if self.is_playing == False:
                 await self.play_music(ctx)
 
@@ -87,7 +87,7 @@ class MusicCog(commands.Cog):
             self.is_paused = True
             self.channel_connected.pause()
 
-    @commands.command(name="resume", help="Despausar a música tocando")
+    @commands.command(name="resume", help="despausar a música tocando")
     async def resume(self, ctx, *args):
         if self.is_paused:
             self.is_playing = True
@@ -98,8 +98,7 @@ class MusicCog(commands.Cog):
     async def skip(self, ctx, *args):
         if self.channel_connected != None and self.channel_connected.is_connected():
             self.channel_connected.stop()
-            await ctx.send("Pulando")
-            await self.play_music(ctx)
+            await ctx.send(">>> Pulando")
 
     @commands.command(name="quit", aliases=["disconnect", 'q'], help="sair fora")
     async def quit(self, ctx, *args):
@@ -111,9 +110,15 @@ class MusicCog(commands.Cog):
     @commands.command(name="playlist", aliases=["pl"],help="listar as musicas na playlist")
     async def playlist(self, ctx, *args):
         c = 1
+        song_list = ""
         await ctx.send("Musicas na fila: \n")
         for music in self.music_queue:
             song = pafy.new(music[0])
             title = song.title
-            await ctx.send(f'{c}. {title} \n')
+            text = f'{c}. {title} \n'
+            song_list = song_list + text
             c += 1
+        await ctx.send(f">>> {song_list}")
+
+
+ 
