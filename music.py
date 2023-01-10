@@ -30,14 +30,13 @@ class MusicCog(commands.Cog):
             loop = asyncio.get_running_loop()
             
             self.is_playing = True
-            url = self.music_queue[0][0]
+            video = self.music_queue[0][0]
 
             if self.channel_connected == None:
                 self.channel_connected = await self.music_queue[0][1].connect()     
             else:
                 await self.channel_connected.move_to(self.music_queue[0][1])
 
-            video = pafy.new(url)
             song = video.getbestaudio()
             source = discord.FFmpegPCMAudio(song.url, **self.ffmpeg_options)
             
@@ -71,14 +70,18 @@ class MusicCog(commands.Cog):
             await ctx.send(">>> Você tem que estar conectado em um canal")
             return
         
-        song = self.search(song_name)
-        if type(song) != str:
-            await ctx.send(">>> Não encontrei")
-        else:
-            self.music_queue.append([song, channel])
-            await ctx.send(f">>> Entrou na fila :D")
-            if self.is_playing == False:
-                await self.play_music(ctx)
+        song_search = self.search(song_name)
+        song = pafy.new(song_search)
+        
+        
+        self.music_queue.append([song, channel])
+        await ctx.send(f">>> Entrou na fila :D")
+            
+        if self.is_playing == False:
+            await self.play_music(ctx)
+            return 0
+        
+       
 
     @commands.command(name="pause", help="pausar a musica tocando no momento")
     async def pause(self, ctx, *args):
@@ -113,7 +116,7 @@ class MusicCog(commands.Cog):
         song_list = ""
         await ctx.send("Musicas na fila: \n")
         for music in self.music_queue:
-            song = pafy.new(music[0])
+            song = music[0]
             title = song.title
             text = f'{c}. {title} \n'
             song_list = song_list + text
