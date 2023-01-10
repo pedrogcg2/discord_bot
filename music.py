@@ -47,20 +47,21 @@ class MusicCog(commands.Cog):
             self.channel_connected.play(source, after= lambda e: self.play_next(ctx, loop))
             
     
-        else:
+        else: 
             self.is_playing = False
             await asyncio.sleep(300)
-            if self.is_playing == False:
+            if not self.channel_connected.is_playing():
                 await ctx.send("Bot desconectado devido a inatividade")
                 await self.quit(ctx)
-                return
+                return 0
+        return -1
     
 
     def play_next(self, ctx, loop):
         asyncio.run_coroutine_threadsafe(self.play_music(ctx), loop) 
 
 
-    @commands.command(name="play", aliases=['p'], help="toca umas musiquinha")
+    @commands.command(name="play", aliases=['p'], help="tocar a musica selecionada")
     async def play(self, ctx, *args):
         song_name = " ".join(args)
         
@@ -79,35 +80,35 @@ class MusicCog(commands.Cog):
             if self.is_playing == False:
                 await self.play_music(ctx)
 
-    @commands.command(name="pause", help="pausa as musiquinha")
+    @commands.command(name="pause", help="pausar a musica tocando no momento")
     async def pause(self, ctx, *args):
         if self.is_playing:
             self.is_playing = False
             self.is_paused = True
             self.channel_connected.pause()
 
-    @commands.command(name="resume", help="retorna as musiquinha")
+    @commands.command(name="resume", help="Despausar a música tocando")
     async def resume(self, ctx, *args):
         if self.is_paused:
             self.is_playing = True
             self.is_paused = False
             self.channel_connected.resume()
 
-    @commands.command(name="skip", aliases=["s", "pula"], help="pula as musiquinha")
+    @commands.command(name="skip", aliases=["s", "pula"], help="pular a musica")
     async def skip(self, ctx, *args):
         if self.channel_connected != None and self.channel_connected.is_connected():
             self.channel_connected.stop()
             await ctx.send("Pulando")
             await self.play_music(ctx)
 
-    @commands.command(name="quit", aliases=["disconnect", 'q'], help="saio fora")
+    @commands.command(name="quit", aliases=["disconnect", 'q'], help="sair fora")
     async def quit(self, ctx, *args):
         self.is_playing = False
         self.is_paused = False
         await self.channel_connected.disconnect()
         self.channel_connected = None
 
-    @commands.command(name="playlist", aliases=["pl"],help="Diz as musicas na playlist")
+    @commands.command(name="playlist", aliases=["pl"],help="listar as musicas na playlist")
     async def playlist(self, ctx, *args):
         c = 1
         await ctx.send("Musicas na fila: \n")
