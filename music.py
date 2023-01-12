@@ -14,6 +14,7 @@ class MusicCog(commands.Cog):
         self.is_paused = False
         self.channel_connected = None
         self.music_queue = []
+        self.music_channel = bot.get_channel(957076453390962698)
         
         self.ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                                'options': '-vn'}
@@ -40,7 +41,7 @@ class MusicCog(commands.Cog):
             song = video.getbestaudio()
             source = discord.FFmpegPCMAudio(song.url, **self.ffmpeg_options)
             
-            await ctx.send(f">>> Tocando: {video.title}")
+            await ctx.send(f">>> Tocando: {video.title}")    
             self.channel_connected.play(source, after= lambda e: self.play_next(ctx, loop))
 
             self.music_queue.pop(0)
@@ -124,4 +125,5 @@ class MusicCog(commands.Cog):
         await ctx.send(f">>> {song_list}")
 
 
+ 
  
